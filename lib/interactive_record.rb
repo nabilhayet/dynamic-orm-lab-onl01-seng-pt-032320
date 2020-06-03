@@ -13,15 +13,16 @@ class InteractiveRecord
     sql = "pragma table_info('#{table_name}')"
     table_info = DB[:conn].execute(sql)
     column_names = []
-    table_info.each do |column|
-      column_names << column["name"]
-    end
-    column_names.compact
+      table_info.each do |column|
+        column_names << column["name"]
+      end
+     column_names.compact
   end
 
   def initialize(options={})
     options.each do |property,value|
       self.send("#{property}=", value)
+    end
   end
 
   def table_name_for_insert
@@ -41,20 +42,20 @@ class InteractiveRecord
   end
 
   def save
-  DB[:conn].execute("INSERT INTO #{table_name_for_insert} (#{col_names_for_insert}) VALUES (?)", [values_for_insert])
-
-  @id = DB[:conn].execute("SELECT last_insert_rowid() FROM #{table_name_for_insert}")[0][0]
-end
-
-  # def self.find_by_name(name)
-  #   DB[:conn].execute("select * from #{self.table_name} where name=?",[name])
-  # end
+    sql = "INSERT INTO #{table_name_for_insert} (#{col_names_for_insert}) VALUES (#{values_for_insert})"
+    DB[:conn].execute(sql)
+    @id = DB[:conn].execute("SELECT last_insert_rowid() FROM #{table_name_for_insert}")[0][0]
+  end
 
   def self.find_by_name(name)
-  sql = "SELECT * FROM #{self.table_name} WHERE name = ?"
-  DB[:conn].execute(sql, name)
-end
+    sql = "SELECT * FROM #{self.table_name} WHERE name = ?"
+    DB[:conn].execute(sql, name)
+  end
 
+  def self.find_by(arg)
+    sql = "select * from #{self.table_name} where #{send(arg)}"
+    binding.pry
+    DB[:conn].execute(sql)
+  end
 
-end
 end
